@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Mining App{% endblock %}
+
+{% block content %}
+    <div class="container my-5" style="background: linear-gradient(135deg, #f0f4f8, #e0e7f0); min-height: calc(100vh - 64px);">
+        <div class="text-center mb-5 py-4">
+            <h1 class="display-4 fw-bold animate__animated animate__fadeIn" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.1);">Добро пожаловать в Mining App</h1>
+            <p class="lead text-muted">Это главная страница приложения для майнинга. Выберите вкладку для управления майнингом.</p>
+        </div>
+        {% include 'cards.html' %}
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        .btn-outline-purple {
+            color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .btn-outline-purple:hover {
+            background-color: #6f42c1;
+            color: white;
+        }
+        .btn-outline-orange {
+            color: #fd7e14;
+            border-color: #fd7e14;
+        }
+        .btn-outline-orange:hover {
+            background-color: #fd7e14;
+            color: white;
+        }
+        .btn-outline-teal {
+            color: #20c997;
+            border-color: #20c997;
+        }
+        .btn-outline-teal:hover {
+            background-color: #20c997;
+            color: white;
+        }
+    </style>
+{% endblock %}

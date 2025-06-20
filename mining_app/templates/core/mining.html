@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <h1>Майнинг</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'mining_create' %}" class="btn btn-primary mb-3">Создать сессию</a>
+    {% endif %}
+    {% if mining_sessions %}
+        <div class="table-responsive rounded">
+        <table class="table table-striped sortable table-hover rounded">
+            <thead>
+                <tr>
+                    <th data-sort="device">Устройство<span class="sort-indicator"></span></th>
+                    <th data-sort="cryptocurrency">Криптовалюта<span class="sort-indicator"></span></th>
+                    <th data-sort="exchange">Биржа<span class="sort-indicator"></span></th>
+                    <th data-sort="price">Цена<span class="sort-indicator"></span></th>
+                    <th data-sort="hashrate_value">Хешрейт (H/s)<span class="sort-indicator"></span></th>
+                    <th data-sort="reward">Награда за блок<span class="sort-indicator"></span></th>
+                    <th data-sort="network_complexity">Сложность сети<span class="sort-indicator"></span></th>
+                    <th data-sort="created_at">Дата создания<span class="sort-indicator"></span></th>
+                    <th>Создатель</th>
+                    {% if user.is_authenticated %}
+                        <th>Действия</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in mining_sessions %}
+                    <tr>
+                        <td data-sort-value="{{ session.device.name|default:'0' }}">{{ session.device|default:"Не указано" }}</td>
+                        <td data-sort-value="{{ session.cryptocurrency.name|default:'0' }}">{{ session.cryptocurrency.name|default:"Не указана" }}</td>
+                        <td data-sort-value="{{ session.exchange.name|default:'0' }}">{{ session.exchange.name|default:"Не указана" }}</td>
+                        <td data-sort-value="{{ session.price|default:'0' }}">{{ session.price|default:"Нет цены" }}</td>
+                        <td data-sort-value="{{ session.hashrate_value|default:'0' }}">{{ session.hashrate_value|default:"Нет хешрейта" }}</td>
+                        <td data-sort-value="{{ session.cryptocurrency.block_reward|default:'0' }}">{{ session.cryptocurrency.block_reward|default:"Нет награды" }}</td>
+                        <td data-sort-value="{{ session.cryptocurrency.network_difficulty|default:'0' }}">{{ session.cryptocurrency.network_difficulty|default:"Нет сложности" }}</td>
+                        <td data-sort-value="{{ session.created_at|date:'U'|default:'0' }}">{{ session.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ session.created_by.username|default:"Не указан" }}</td>
+                        {% if user.is_authenticated %}
+                            <td>
+                                {% if user.is_staff or session.created_by == user %}
+                                    <a href="{% url 'mining_edit' session.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                                    <a href="{% url 'mining_delete' session.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        {% if user.is_authenticated %}
+            <div class="user-info mt-4">
+                <h3>Информация по майнингу</h3>
+                {% for crypto, mined, rubles in crypto_data %}
+                    <p>Скорость майнинга {{ crypto }}: {{ mined|floatformat:8 }} ед./час</p>
+                    <p>Заработок {{ crypto }} в рублях: {{ rubles|floatformat:2 }} руб./час</p>
+                {% empty %}
+                    <p>Нет данных о майнинге.</p>
+                {% endfor %}
+                <p><h4>Общая сумма: {{ total_rubles_per_hour|floatformat:2 }} руб./час</h4></p>
+                <div class="power-cost">
+                    <h3>Калькулятор цены за электроэнергию</h3>
+                    <label for="power_cost_per_kwh">Цена за кВт·ч (в рублях): </label>
+                    <input type="number" id="power_cost_per_kwh" step="0.01" min="0" value="0" class="form-control" style="width: 150px; display: inline-block;">
+                    <p><h4>Общая стоимость электричества: <span id="total_power_cost">0.00</span> руб./час</h4></p>
+                </div>
+                <div class="net-profit mt-3">
+                    <h4>Чистая прибыль: <span id="profit">0.00</span> руб./час</h4>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-5">
+                <div class="card-body">
+                    <h5 class="card-title">График скорости майнинга</h5>
+                    <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto;">
+                        <canvas id="miningChart" style="max-width: 100%; height: 300px"></canvas>
+                    </div>
+                </div>
+            </div>
+        
+            <script>
+
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    const powerCostInput = document.getElementById('power_cost_per_kwh');
+                    const totalPowerCost = document.getElementById('total_power_cost');
+                    const totalPowerWatts = {{ total_power_consumption }};
+                    const Profit = document.getElementById('profit');
+                    const totalRublesPerHour = {{ total_rubles_per_hour|floatformat:2 }};
+                
+                    powerCostInput.addEventListener('input', function() {
+                        const costPerKwh = parseFloat(this.value) || 0;
+                        const costPerHour = (totalPowerWatts / 1000) * costPerKwh;
+                        totalPowerCost.textContent = costPerHour.toFixed(2);
+                        const initialProfit = totalRublesPerHour - costPerHour;
+                        Profit.textContent = initialProfit.toFixed(2);
+                    });
+                
+                    const table = document.querySelector('.sortable');
+                    if (!table) {
+                        console.error('Таблица с классом .sortable не найдена');
+                        return;
+                    }
+                    const thead = table.querySelector('thead');
+                    const tbody = table.querySelector('tbody');
+                    let sortDirection = 1;
+                    let lastSortedColumn = null;
+                
+                    thead.addEventListener('click', (e) => {
+                        const th = e.target.closest('th');
+                        if (!th || !th.dataset.sort) return;
+                    
+                        const sortKey = th.dataset.sort;
+                        const sortIndicator = th.querySelector('.sort-indicator');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                        if (lastSortedColumn === th) {
+                            sortDirection *= -1;
+                        } else {
+                            thead.querySelectorAll('th').forEach(th => {
+                                th.classList.remove('sorted');
+                                const indicator = th.querySelector('.sort-indicator');
+                                if (indicator) indicator.textContent = '';
+                            });
+                            sortDirection = 1;
+                        }
+                        th.classList.add('sorted');
+                        lastSortedColumn = th;
+                    
+                        if (sortIndicator) {
+                            sortIndicator.textContent = sortDirection === 1 ? ' ▲' : ' ▼';
+                        }
+                    
+                        rows.sort((a, b) => {
+                            let aValue = a.cells[Array.from(thead.querySelectorAll('th')).indexOf(th)].dataset.sortValue;
+                            let bValue = b.cells[Array.from(thead.querySelectorAll('th')).indexOf(th)].dataset.sortValue;
+                        
+                            if (sortKey === 'price' || sortKey === 'hashrate_value' || sortKey === 'reward' || sortKey === 'network_complexity') {
+                                aValue = parseFloat(aValue) || 0;
+                                bValue = parseFloat(bValue) || 0;
+                            }
+
+                            if (sortKey === 'created_at') {
+                                aValue = parseInt(aValue, 10) || 0;
+                                bValue = parseInt(bValue, 10) || 0;
+                            }
+                        
+                            if (aValue < bValue) return -1 * sortDirection;
+                            if (aValue > bValue) return 1 * sortDirection;
+                            return 0;
+                        });
+                    
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+                });
+            </script>
+            <script>
+        const miningData = {
+            labels: [
+                {% for crypto, mined, rubles in crypto_data %}'{{ crypto }}',{% endfor %}
+            ],
+            datasets: [{
+                label: 'Скорость майнинга (руб./ч.)',
+                data: [
+                    {% for crypto, mined, rubles in crypto_data %}{{ rubles|floatformat:2 }},{% endfor %}
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const ctx = document.getElementById('miningChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: miningData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Скорость майнинга (руб./ч.)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Криптовалюты'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+        
+        <style>
+            th.sorted {
+                background-color: #f0f0f0;
+            }
+            th {
+                cursor: default;
+                user-select: none;
+            }
+            .sort-indicator {
+                margin-left: 5px;
+                font-size: 0.8em;
+            }
+        </style>
+        {% endif %}
+    {% endif %}
+    <h1>Навигация</h1>
+    {% include 'cards.html' %}
+{% endblock %}

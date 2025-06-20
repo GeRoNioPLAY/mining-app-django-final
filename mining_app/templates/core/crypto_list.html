@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Цены криптовалют</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'crypto_price_create' %}" class="btn btn-primary mb-3">Добавить цену</a>
+    {% endif %}
+    {% if cryptocurrencies %}
+        <div class="table-responsive rounded">
+        <table class="table table-striped sortable table-hover rounded">
+            <thead>
+                <tr>
+                    <th data-sort="cryptocurrency">Криптовалюта<span class="sort-indicator"></span></th>
+                    <th data-sort="exchange">Биржа<span class="sort-indicator"></span></th>
+                    <th data-sort="price">Цена<span class="sort-indicator"></span></th>
+                    <th data-sort="created_at">Дата создания<span class="sort-indicator"></span></th>
+                    <th data-sort="creator">Создал<span class="sort-indicator"></span></th>
+                    {% if user.is_authenticated %}
+                        <th>Действия</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for price in cryptocurrencies %}
+                    <tr>
+                        <td data-sort-value="{{ price.cryptocurrency.name|default:'0' }}">{{ price.cryptocurrency.name }}</td>
+                        <td data-sort-value="{{ price.exchange.name|default:'0' }}">{{ price.exchange.name }}</td>
+                        <td data-sort-value="{{ price.price|default:'0' }}">{{ price.price }}</td>
+                        <td data-sort-value="{{ price.created_at|date:'U'|default:'0' }}">{{ price.created_at|date:"d.m.Y H:i" }}</td>
+                        <td data-sort-value="{{ price.created_by.username|default:'0' }}">{{ price.created_by.username|default:"Не указан" }}</td>
+                        {% if user.is_authenticated %}
+                            <td>
+                                {% if user.is_staff or price.created_by == user %}
+                                    <a href="{% url 'crypto_price_edit' price.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                                    <a href="{% url 'crypto_price_delete' price.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const table = document.querySelector('.sortable');
+                    if (!table) {
+                        console.error('Таблица с классом .sortable не найдена');
+                        return;
+                    }
+                    const thead = table.querySelector('thead');
+                    const tbody = table.querySelector('tbody');
+                    let sortDirection = 1;
+                    let lastSortedColumn = null;
+                
+                    thead.addEventListener('click', (e) => {
+                        const th = e.target.closest('th');
+                        if (!th || !th.dataset.sort) return;
+                    
+                        const sortKey = th.dataset.sort;
+                        const sortIndicator = th.querySelector('.sort-indicator');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                        if (lastSortedColumn === th) {
+                            sortDirection *= -1;
+                        } else {
+                            thead.querySelectorAll('th').forEach(th => {
+                                th.classList.remove('sorted');
+                                const indicator = th.querySelector('.sort-indicator');
+                                if (indicator) indicator.textContent = '';
+                            });
+                            sortDirection = 1;
+                        }
+                        th.classList.add('sorted');
+                        lastSortedColumn = th;
+                    
+                        if (sortIndicator) {
+                            sortIndicator.textContent = sortDirection === 1 ? ' ▲' : ' ▼';
+                        }
+                    
+                        rows.sort((a, b) => {
+                            let aValue = a.cells[Array.from(thead.querySelectorAll('th')).indexOf(th)].dataset.sortValue;
+                            let bValue = b.cells[Array.from(thead.querySelectorAll('th')).indexOf(th)].dataset.sortValue;
+                        
+                            if (sortKey === 'price') {
+                                aValue = parseFloat(aValue) || 0;
+                                bValue = parseFloat(bValue) || 0;
+                            }
+
+                            if (sortKey === 'created_at') {
+                                aValue = parseInt(aValue, 10) || 0;
+                                bValue = parseInt(bValue, 10) || 0;
+                            }
+                        
+                            if (aValue < bValue) return -1 * sortDirection;
+                            if (aValue > bValue) return 1 * sortDirection;
+                            return 0;
+                        });
+
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+            
+            });
+        </script>
+
+        <style>
+            th.sorted {
+                background-color: #f0f0f0;
+            }
+            th {
+                cursor: default;
+                user-select: none;
+            }
+            .sort-indicator {
+                margin-left: 5px;
+                font-size: 0.8em;
+            }
+        </style>
+    {% else %}
+        <p>Цены криптовалют пока не добавлены.</p>
+    {% endif %}
+    <h1>Навигация</h1>
+    {% include 'cards.html' %}
+{% endblock %}

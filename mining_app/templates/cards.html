@@ -1,0 +1,82 @@
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-4 g-4 justify-content-center">
+
+            <div class="col animate__animated animate__fadeInUp">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-success" style="color: #28a745;">Алгоритмы</h5>
+                        <p class="card-text text-muted">Просмотрите имеющийся список алгоритмов майнинга.</p>
+                        <a href="{% url 'algorithms' %}" class="btn btn-outline-success mt-3" style="color: #28a745; border-color: #28a745;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-info" style="color: #17a2b8;">Биржи</h5>
+                        <p class="card-text text-muted">Список имеющихся бирж.</p>
+                        <a href="{% url 'exchanges' %}" class="btn btn-outline-info mt-3" style="color: #17a2b8; border-color: #17a2b8;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-warning" style="color: #ffc107;">Криптовалюты</h5>
+                        <p class="card-text text-muted">Информация о поддерживаемых криптовалютах.</p>
+                        <a href="{% url 'cryptocurrencies' %}" class="btn btn-outline-warning mt-3" style="color: #ffc107; border-color: #ffc107;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title" style="color: #6f42c1;">Устройства</h5>
+                        <p class="card-text text-muted">Управление устройствами для майнинга.</p>
+                        <a href="{% url 'devices' %}" class="btn btn-outline-purple mt-3" style="color: #6f42c1; border-color: #6f42c1;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title" style="color: #fd7e14;">Хешрейты</h5>
+                        <p class="card-text text-muted">Таблица хешрейтов устройств.</p>
+                        <a href="{% url 'hashrates' %}" class="btn btn-outline-orange mt-3" style="color: #fd7e14; border-color: #fd7e14;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title" style="color: #20c997;">Цены криптовалют</h5>
+                        <p class="card-text text-muted">Актуальные цены криптовалют.</p>
+                        <a href="{% url 'crypto_list' %}" class="btn btn-outline-teal mt-3" style="color: #20c997; border-color: #20c997;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 1.2s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-danger" style="color: #dc3545;">Майнинг</h5>
+                        <p class="card-text text-muted">Настройте и запустите процесс майнинга.</p>
+                        <a href="{% url 'mining' %}" class="btn btn-outline-danger mt-3" style="color: #dc3545; border-color: #dc3545;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col animate__animated animate__fadeInUp" style="animation-delay: 1.4s;">
+                <div class="card h-100 border-0 shadow-sm bg-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title" style="color: #007bff;">Личный кабинет</h5>
+                        <p class="card-text text-muted">Управление вашим профилем и настройками.</p>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-primary mt-3" style="color: #007bff; border-color: #007bff;">Перейти</a>
+                    </div>
+                </div>
+            </div>
+        </div>

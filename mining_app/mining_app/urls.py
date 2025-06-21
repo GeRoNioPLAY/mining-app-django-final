@@ -2,6 +2,15 @@ from django.contrib import admin
 from django.urls import path
 from core import views
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
+from core.sitemaps import StaticViewSitemap, ExchangeSitemap, MiningSessionSitemap
+from django.contrib.sitemaps.views import sitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'exchanges': ExchangeSitemap,
+    'mining_sessions': MiningSessionSitemap,
+}
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -38,4 +47,8 @@ urlpatterns = [
     path('hashrates/create/', views.hashrates_create, name='hashrates_create'),
     path('hashrates/edit/<int:pk>/', views.hashrates_edit, name='hashrates_edit'),
     path('hashrates/delete/<int:pk>/', views.hashrates_delete, name='hashrates_delete'),
+    path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('exchange/<int:pk>/', views.exchanges, name='exchange_detail'),
+    path('mining_session/<int:pk>/', views.mining, name='mining_session_detail'),
 ]
